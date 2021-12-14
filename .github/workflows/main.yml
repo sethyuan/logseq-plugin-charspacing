@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "14.x"
-          
+
       - name: Build
         id: build
         run: |
@@ -37,7 +37,9 @@ jobs:
           cp README.md package.json icon.png ${{ env.PLUGIN_NAME }}
           mv dist ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
-      
+          ls
+          echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -49,7 +51,7 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
-      
+
       - name: Upload zip file
         id: upload_zip
         uses: actions/upload-release-asset@v1
@@ -58,5 +60,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ github.ref }}.zip
+          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
           asset_content_type: application/zip
