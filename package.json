@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.html",
   "logseq": {
-    "id": "_f40d8v317"
+    "id": "_sethyuan-logseq-charspacing",
+    "icon": "./icon.png"
   },
   "scripts": {
     "start": "wmr",

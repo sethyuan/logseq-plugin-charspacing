@@ -50,7 +50,7 @@ logseq
         }
       }
     })
-    observer.observe(parent.document.querySelector("#left-container"), {
+    observer.observe(parent.document.querySelector("#app-container"), {
       subtree: true,
       childList: true,
     })
@@ -58,7 +58,7 @@ logseq
     // Initial processing.
     setTimeout(() => {
       const startupNodes = parent.document.querySelectorAll(
-        ".block-content span.inline",
+        "#app-container .block-content span.inline",
       )
       for (const node of startupNodes) {
         node.innerHTML = addSpacing(node.innerHTML)
