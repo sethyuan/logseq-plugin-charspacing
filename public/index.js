@@ -34,10 +34,10 @@ logseq
   .ready(async () => {
     // Inject CSS.
     logseq.provideStyle(`
-			.kef-char-spacing {
-				margin-right: 0.1em;
-			}
-		`)
+      .kef-char-spacing {
+        margin-right: 0.1em;
+      }
+    `)
 
     // Observer all subsequent mutations.
     const observer = new MutationObserver((mutationList) => {
