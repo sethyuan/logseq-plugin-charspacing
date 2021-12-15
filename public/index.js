@@ -93,5 +93,9 @@ logseq
       subtree: true,
       childList: true,
     })
+
+    logseq.beforeunload(async () => {
+      observer.disconnect()
+    })
   })
   .catch(console.error)
