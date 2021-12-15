@@ -1,5 +1,7 @@
 import "@logseq/libs"
 
+const SPACING = "0.1em"
+
 const hanzi =
   "[\u2E80-\u2FFF\u31C0-\u31EF\u3300-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]"
 const punc = {
@@ -95,7 +97,7 @@ logseq
     // Inject CSS.
     logseq.provideStyle(`
       .kef-char-spacing {
-        margin-right: 0.1em;
+        margin-right: ${logseq.settings?.spacing ?? SPACING};
       }
     `)
 
