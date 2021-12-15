@@ -1,6 +1,7 @@
 # logseq-plugin-charspacing
 
 在中英文单词间添加一个间距，看起来会更美观一点。不会影响源文件，也不会影响编辑模式。
+
 Render an extra space between Chinese and ASCII characters to make it look better. This doesn't affect the source file, nor it affects the editing mode.
 
 ## 效果展示 (Showcase)
