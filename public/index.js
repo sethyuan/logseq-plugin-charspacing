@@ -1,7 +1,5 @@
 import "@logseq/libs"
 
-const SPACING = "0.1em"
-
 const hanzi =
   "[\u2E80-\u2FFF\u31C0-\u31EF\u3300-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]"
 const punc = {
@@ -32,7 +30,7 @@ function addSpacing(el) {
       .reduce((ret, x) => ret.concat(x))
       .sort((a, b) => a - b)
 
-    splitTextNode(textNode, indices, el)
+    insertSpacing(textNode, indices, el, textNodes[i + 1])
   }
 }
 
@@ -49,59 +47,36 @@ function* getTextNodes(node) {
   }
 }
 
-function splitTextNode(node, indices, host) {
+function insertSpacing(node, indices, host, nextNode) {
   if (!indices?.length) return
 
-  const frag = document.createDocumentFragment()
-  let lastNode = node.cloneNode()
-  let offset = 0
+  const len = node.length
 
-  for (const index of indices) {
-    const len = index - offset
-    offset = index
+  for (let i = indices.length - 1; i >= 0; i--) {
+    const isMark =
+      indices[i] >= len &&
+      node.parentElement !== host &&
+      hasMarkAncestor(node, host)
 
-    if (len < lastNode.data.length) {
-      frag.appendChild(document.createTextNode(lastNode.data.substring(0, len)))
-      const spacing = document.createElement("span")
-      spacing.classList.add("kef-char-spacing")
-      frag.appendChild(spacing)
-      lastNode = document.createTextNode(lastNode.data.substring(len))
-    }
-  }
-  frag.appendChild(lastNode)
-
-  // Calculate where this last spacing should go to.
-  if (
-    indices[indices.length - 1] >= node.data.length &&
-    node.parentElement != null
-  ) {
-    if (node.parentElement === host) {
-      const spacing = document.createElement("span")
-      spacing.classList.add("kef-char-spacing")
-      frag.appendChild(spacing)
+    if (isMark && nextNode != null) {
+      nextNode.insertData(0, " ")
     } else {
-      let parent = node.parentElement
-      while (parent.parentElement != null && parent.parentElement !== host) {
-        if (parent !== parent.parentElement.lastChild) break
-        parent = parent.parentElement
-      }
-      parent.classList.add("kef-char-spacing")
+      node.insertData(indices[i], " ")
     }
   }
+}
 
-  node.parentNode.replaceChild(frag, node)
+function hasMarkAncestor(node, host) {
+  let parent = node.parentElement
+  while (parent != null && parent !== host) {
+    if (parent.nodeName.toLowerCase() === "mark") return true
+    parent = parent.parentElement
+  }
+  return false
 }
 
 logseq
   .ready(async () => {
-    // Inject CSS.
-    logseq.provideStyle(`
-      .kef-char-spacing {
-        margin-right: ${logseq.settings?.spacing ?? SPACING};
-      }
-    `)
-
-    // Observer all subsequent mutations.
     const observer = new MutationObserver((mutationList) => {
       for (const mutation of mutationList) {
         for (const node of mutation.addedNodes) {
