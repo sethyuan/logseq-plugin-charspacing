@@ -1,6 +1,6 @@
 {
   "name": "logseq-plugin-charspacing",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/index.html",
   "logseq": {
     "id": "_sethyuan-logseq-charspacing",
