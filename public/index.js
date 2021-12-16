@@ -16,25 +16,25 @@ const patterns = [
   new RegExp("(" + latin + "|" + punc.close + ")(" + hanzi + ")", "ig"),
 ]
 
-function addSpacing(el) {
+function renderSpacing(el) {
   const textNodes = Array.from(getTextNodes(el))
-  for (let i = 0, inheritedSpacing = false; i < textNodes.length; i++) {
+  for (let i = 0, inheritedSpace = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
     // Join text with the first character of the next text node for
     // pattern matching.
-    let text = `${inheritedSpacing ? " " : ""}${textNode.data}${
+    let text = `${inheritedSpace ? " " : ""}${textNode.data}${
       textNodes[i + 1]?.data[0] ?? " "
     }`
     // Reset value.
-    inheritedSpacing = false
+    inheritedSpace = false
 
     for (const pattern of patterns) {
       text = text.replace(pattern, "$1 $2")
     }
     if (text[text.length - 2] === " " && hasMarkAncestor(textNode, el)) {
-      inheritedSpacing = true
+      inheritedSpace = true
     }
-    text = text.substring(0, text.length - (inheritedSpacing ? 2 : 1))
+    text = text.substring(0, text.length - (inheritedSpace ? 2 : 1))
 
     // Avoid DOM mutation when possible.
     if (textNode.data !== text) {
@@ -65,17 +65,47 @@ function hasMarkAncestor(node, host) {
   return false
 }
 
+async function addSpacing(block) {
+  if (block == null) return
+
+  let text = block.content
+  for (const pattern of patterns) {
+    text = text.replace(pattern, "$1 $2")
+  }
+
+  if (text !== block.content) {
+    await logseq.Editor.updateBlock(block.uuid, text)
+  }
+}
+
 logseq
   .ready(async () => {
+    const overwrite = logseq.settings?.overwrite
+
     const observer = new MutationObserver((mutationList) => {
       for (const mutation of mutationList) {
-        for (const node of mutation.addedNodes) {
-          if (node.querySelectorAll) {
-            const nodes = node.querySelectorAll(
-              "div.inline, span.inline, div.inline td, div.inline th",
-            )
-            for (const n of nodes) {
-              addSpacing(n)
+        if (overwrite) {
+          for (const node of mutation.removedNodes) {
+            // NOTE: All this detection logic is kind of hacky, it should be
+            // refactored when the plugin infrastructure can provide
+            // this information.
+            if (node.className === "editor-inner block-editor") {
+              const editBlockID = node.firstChild.id // textarea.id
+              // uuid length is 36.
+              const blockID = editBlockID.substring(editBlockID.length - 36)
+              logseq.Editor.getBlock(blockID).then(addSpacing)
+              break
+            }
+          }
+        } else {
+          for (const node of mutation.addedNodes) {
+            if (node.querySelectorAll) {
+              const nodes = node.querySelectorAll(
+                "div.inline, span.inline, div.inline td, div.inline th",
+              )
+              for (const n of nodes) {
+                renderSpacing(n)
+              }
             }
           }
         }
