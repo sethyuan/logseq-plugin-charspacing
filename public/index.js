@@ -18,19 +18,28 @@ const patterns = [
 
 function addSpacing(el) {
   const textNodes = Array.from(getTextNodes(el))
-  for (let i = 0; i < textNodes.length; i++) {
+  for (let i = 0, inheritedSpacing = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
     // Join text with the first character of the next text node for
     // pattern matching.
-    const text = `${textNode.data}${textNodes[i + 1]?.data[0] ?? ""}`
+    let text = `${inheritedSpacing ? " " : ""}${textNode.data}${
+      textNodes[i + 1]?.data[0] ?? " "
+    }`
+    // Reset value.
+    inheritedSpacing = false
 
-    // Find spliting indices.
-    const indices = patterns
-      .map((p) => Array.from(text.matchAll(p)).map((m) => m.index + 1))
-      .reduce((ret, x) => ret.concat(x))
-      .sort((a, b) => a - b)
+    for (const pattern of patterns) {
+      text = text.replace(pattern, "$1 $2")
+    }
+    if (text[text.length - 2] === " " && hasMarkAncestor(textNode, el)) {
+      inheritedSpacing = true
+    }
+    text = text.substring(0, text.length - (inheritedSpacing ? 2 : 1))
 
-    insertSpacing(textNode, indices, el, textNodes[i + 1])
+    // Avoid DOM mutation when possible.
+    if (textNode.data !== text) {
+      textNode.data = text
+    }
   }
 }
 
@@ -43,25 +52,6 @@ function* getTextNodes(node) {
       case 1:
         yield* getTextNodes(subnode)
         break
-    }
-  }
-}
-
-function insertSpacing(node, indices, host, nextNode) {
-  if (!indices?.length) return
-
-  const len = node.length
-
-  for (let i = indices.length - 1; i >= 0; i--) {
-    const isMark =
-      indices[i] >= len &&
-      node.parentElement !== host &&
-      hasMarkAncestor(node, host)
-
-    if (isMark && nextNode != null) {
-      nextNode.insertData(0, " ")
-    } else {
-      node.insertData(indices[i], " ")
     }
   }
 }
