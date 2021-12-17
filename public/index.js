@@ -14,7 +14,6 @@ const patterns = [
   new RegExp(`(${hanzi})(${latin}|${punc.open})`, "ig"),
   new RegExp(`(${latin}|${punc.close})(${hanzi})`, "ig"),
 ]
-
 const highlightTags = new Set(["mark", "code", "a"])
 
 function renderSpacing(el) {
@@ -68,47 +67,17 @@ function hasHighlightAncestor(node, host) {
   return false
 }
 
-async function addSpacing(block) {
-  if (block == null) return
-
-  let text = block.content
-  for (const pattern of patterns) {
-    text = text.replace(pattern, "$1 $2")
-  }
-
-  if (text !== block.content) {
-    await logseq.Editor.updateBlock(block.uuid, text)
-  }
-}
-
 logseq
   .ready(async () => {
-    const overwrite = logseq.settings?.overwrite
-
     const observer = new MutationObserver((mutationList) => {
       for (const mutation of mutationList) {
-        if (overwrite) {
-          for (const node of mutation.removedNodes) {
-            // NOTE: All this detection logic is kind of hacky, it should be
-            // refactored when the plugin infrastructure can provide
-            // this information.
-            if (node.className === "editor-inner block-editor") {
-              const editBlockID = node.firstChild.id // textarea.id
-              // uuid length is 36.
-              const blockID = editBlockID.substring(editBlockID.length - 36)
-              logseq.Editor.getBlock(blockID).then(addSpacing)
-              break
-            }
-          }
-        } else {
-          for (const node of mutation.addedNodes) {
-            if (node.querySelectorAll) {
-              const nodes = node.querySelectorAll(
-                "div.inline, span.inline, div.inline td, div.inline th",
-              )
-              for (const n of nodes) {
-                renderSpacing(n)
-              }
+        for (const node of mutation.addedNodes) {
+          if (node.querySelectorAll) {
+            const nodes = node.querySelectorAll(
+              "div.inline, span.inline, div.inline td, div.inline th",
+            )
+            for (const n of nodes) {
+              renderSpacing(n)
             }
           }
         }
