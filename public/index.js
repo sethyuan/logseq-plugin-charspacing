@@ -36,10 +36,14 @@ function renderSpacing(el) {
     for (const pattern of patterns) {
       text = text.replace(pattern, "$1 $2")
     }
-    if (text[text.length - 2] === " " && hasHighlightAncestor(textNode, el)) {
-      inheritedSpace = true
+    let throwAway = false
+    if (text[text.length - 2] === " ") {
+      ;[inheritedSpace, throwAway] = shouldInheritOrThrowAway(textNode, el)
     }
-    text = text.substring(0, text.length - (inheritedSpace ? 2 : 1))
+    text = text.substring(
+      0,
+      text.length - (inheritedSpace || throwAway ? 2 : 1),
+    )
 
     // Avoid DOM mutation when possible.
     if (textNode.data !== text) {
@@ -61,13 +65,24 @@ function* getTextNodes(node) {
   }
 }
 
-function hasHighlightAncestor(node, host) {
+function shouldInheritOrThrowAway(node, host) {
   let parent = node.parentElement
+
   while (parent != null && parent !== host) {
-    if (highlightTags.has(parent.nodeName.toLowerCase())) return true
+    if (highlightTags.has(parent.nodeName.toLowerCase())) {
+      // It ends the line.
+      if (
+        parent.nextSibling?.nodeName?.toLowerCase() === "br" ||
+        parent.parentElement?.nodeName.toLowerCase() === "div"
+      ) {
+        return [false, true]
+      }
+      return [true, false]
+    }
     parent = parent.parentElement
   }
-  return false
+
+  return [false, false]
 }
 
 logseq
