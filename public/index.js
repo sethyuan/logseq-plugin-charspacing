@@ -14,11 +14,14 @@ const patterns = [
   new RegExp(`(${hanzi})(${latin}|${punc.open})`, "ig"),
   new RegExp(`(${latin}|${punc.close})(${hanzi})`, "ig"),
 ]
-const highlightTags = new Set(["mark", "code", "a"])
+const highlightTags = new Set(["mark", "a"])
 
 function renderSpacing(el) {
   const textNodes = Array.from(getTextNodes(el)).filter(
-    (node) => node.parentElement.attributes["role"]?.value !== "presentation",
+    // source code like elements should be excluded.
+    (node) =>
+      node.parentElement.nodeName.toLowerCase() !== "code" &&
+      node.parentElement.attributes["role"]?.value !== "presentation",
   )
   for (let i = 0, inheritedSpace = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
