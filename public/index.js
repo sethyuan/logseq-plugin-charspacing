@@ -14,17 +14,36 @@ const patterns = [
   new RegExp(`(${hanzi})(${latin}|${punc.open})`, "ig"),
   new RegExp(`(${latin}|${punc.close})(${hanzi})`, "ig"),
 ]
+const latinHanziPattern = new RegExp(`${latin}|${hanzi}`, "i")
 const highlightTags = new Set(["mark", "a"])
 
 function renderSpacing(el) {
   const textNodes = Array.from(getTextNodes(el)).filter(
     // source code like elements should be excluded.
-    (node) =>
-      node.parentElement.nodeName.toLowerCase() !== "code" &&
-      node.parentElement.attributes["role"]?.value !== "presentation",
+    (node) => node.parentElement.attributes["role"]?.value !== "presentation",
   )
   for (let i = 0, inheritedSpace = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
+
+    // Inline code has a special handling.
+    if (textNode.parentElement.nodeName.toLowerCase() === "code") {
+      const prevText = textNodes[i - 1]?.data
+      if (prevText?.length > 0) {
+        const prevChar = prevText[prevText.length - 1]
+        if (latinHanziPattern.test(prevChar)) {
+          textNodes[i - 1].data = `${prevText} `
+        }
+      }
+      const nextText = textNodes[i + 1]?.data
+      if (nextText?.length > 0) {
+        const nextChar = nextText[0]
+        if (latinHanziPattern.test(nextChar)) {
+          textNodes[i + 1].data = ` ${nextText}`
+        }
+      }
+      continue
+    }
+
     // Join text with the first character of the next text node for
     // pattern matching.
     let text = `${inheritedSpace ? " " : ""}${textNode.data}${
@@ -85,29 +104,31 @@ function shouldInheritOrThrowAway(node, host) {
   return [false, false]
 }
 
-logseq
-  .ready(async () => {
-    const observer = new MutationObserver((mutationList) => {
-      for (const mutation of mutationList) {
-        for (const node of mutation.addedNodes) {
-          if (node.querySelectorAll) {
-            const nodes = node.querySelectorAll(
-              "div.inline, span.inline, div.inline td, div.inline th",
-            )
-            for (const n of nodes) {
-              renderSpacing(n)
-            }
+async function main() {
+  const observer = new MutationObserver((mutationList) => {
+    for (const mutation of mutationList) {
+      for (const node of mutation.addedNodes) {
+        if (node.querySelectorAll) {
+          const nodes = node.querySelectorAll(
+            "div.inline, span.inline, div.inline td, div.inline th",
+          )
+          for (const n of nodes) {
+            renderSpacing(n)
           }
         }
       }
-    })
-    observer.observe(parent.document.body, {
-      subtree: true,
-      childList: true,
-    })
-
-    logseq.beforeunload(async () => {
-      observer.disconnect()
-    })
+    }
   })
-  .catch(console.error)
+  observer.observe(parent.document.body, {
+    subtree: true,
+    childList: true,
+  })
+
+  logseq.beforeunload(async () => {
+    observer.disconnect()
+  })
+
+  console.log("#charspacing loaded")
+}
+
+logseq.ready(main).catch(console.error)
