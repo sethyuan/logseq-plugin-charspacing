@@ -41,6 +41,8 @@ function renderSpacing(el) {
           textNodes[i + 1].data = ` ${nextText}`
         }
       }
+      // No space should be inherited after processing inline code.
+      inheritedSpace = false
       continue
     }
 
@@ -110,7 +112,7 @@ async function main() {
       for (const node of mutation.addedNodes) {
         if (node.querySelectorAll) {
           const nodes = node.querySelectorAll(
-            "div.inline, span.inline, div.inline td, div.inline th",
+            "div.block-content.inline, .block-parents span",
           )
           for (const n of nodes) {
             renderSpacing(n)
