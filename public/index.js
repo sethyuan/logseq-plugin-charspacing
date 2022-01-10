@@ -94,7 +94,8 @@ function shouldInheritOrThrowAway(node, host) {
       // It ends the line.
       if (
         parent.nextSibling?.nodeName?.toLowerCase() === "br" ||
-        parent.parentElement?.nodeName.toLowerCase() === "div"
+        (parent.parentElement?.nodeName.toLowerCase() === "div" &&
+          parent.parentElement?.style.display !== "inline")
       ) {
         return [false, true]
       }
