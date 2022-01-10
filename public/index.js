@@ -30,14 +30,24 @@ function renderSpacing(el) {
       const prevText = textNodes[i - 1]?.data
       if (prevText?.length > 0) {
         const prevChar = prevText[prevText.length - 1]
-        if (latinHanziPattern.test(prevChar)) {
+        if (
+          latinHanziPattern.test(prevChar) &&
+          textNode.parentElement.nextSibling?.nodeName?.toLowerCase() !==
+            "br" &&
+          inSameBlock(textNode.parentElement, textNodes[i - 1], el)
+        ) {
           textNodes[i - 1].data = `${prevText} `
         }
       }
       const nextText = textNodes[i + 1]?.data
       if (nextText?.length > 0) {
         const nextChar = nextText[0]
-        if (latinHanziPattern.test(nextChar)) {
+        if (
+          latinHanziPattern.test(nextChar) &&
+          textNode.parentElement.nextSibling?.nodeName?.toLowerCase() !==
+            "br" &&
+          inSameBlock(textNode.parentElement, textNodes[i + 1], el)
+        ) {
           textNodes[i + 1].data = ` ${nextText}`
         }
       }
@@ -59,7 +69,11 @@ function renderSpacing(el) {
     }
     let throwAway = false
     if (text[text.length - 2] === " ") {
-      ;[inheritedSpace, throwAway] = shouldInheritOrThrowAway(textNode, el)
+      ;[inheritedSpace, throwAway] = shouldInheritOrThrowAway(
+        textNode,
+        textNodes[i + 1],
+        el,
+      )
     }
     text = text.substring(
       0,
@@ -86,7 +100,7 @@ function* getTextNodes(node) {
   }
 }
 
-function shouldInheritOrThrowAway(node, host) {
+function shouldInheritOrThrowAway(node, nextNode, host) {
   let parent = node.parentElement
 
   while (parent != null && parent !== host) {
@@ -94,8 +108,7 @@ function shouldInheritOrThrowAway(node, host) {
       // It ends the line.
       if (
         parent.nextSibling?.nodeName?.toLowerCase() === "br" ||
-        (parent.parentElement?.nodeName.toLowerCase() === "div" &&
-          parent.parentElement?.style.display !== "inline")
+        !inSameBlock(parent, nextNode, host)
       ) {
         return [false, true]
       }
@@ -105,6 +118,29 @@ function shouldInheritOrThrowAway(node, host) {
   }
 
   return [false, false]
+}
+
+function inSameBlock(a, b, host) {
+  const aBlock = findBlock(a, host)
+  const bBlock = findBlock(b, host)
+  return aBlock === bBlock
+}
+
+function findBlock(node, host) {
+  if (!node) return undefined
+
+  let parent = node.parentElement
+  while (
+    parent != null &&
+    !(
+      parent.tagName.toLowerCase() === "div" &&
+      parent.style.display !== "inline"
+    ) &&
+    parent !== host
+  ) {
+    parent = parent.parentElement
+  }
+  return parent
 }
 
 async function main() {
