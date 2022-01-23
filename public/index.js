@@ -91,7 +91,10 @@ function* getTextNodes(node) {
   for (const subnode of node.childNodes) {
     switch (subnode.nodeType) {
       case 3:
-        yield subnode
+        // Exclude non-visible text nodes.
+        if (subnode.parentElement.offsetParent != null) {
+          yield subnode
+        }
         break
       case 1:
         yield* getTextNodes(subnode)
