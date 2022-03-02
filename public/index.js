@@ -149,14 +149,20 @@ function findBlock(node, host) {
 async function main() {
   const observer = new MutationObserver((mutationList) => {
     for (const mutation of mutationList) {
-      for (const node of mutation.addedNodes) {
-        if (node.querySelectorAll) {
-          const nodes = node.querySelectorAll(
-            "div.block-content.inline, .block-parents span",
-          )
-          for (const n of nodes) {
-            renderSpacing(n)
+      if (mutation.type === "childList") {
+        for (const node of mutation.addedNodes) {
+          if (node.querySelectorAll) {
+            const nodes = node.querySelectorAll(
+              "div.block-content.inline, .block-parents span",
+            )
+            for (const n of nodes) {
+              renderSpacing(n)
+            }
           }
+        }
+      } else if (mutation.type === "attributes") {
+        if (mutation.target.classList.contains("cloze-revealed")) {
+          renderSpacing(mutation.target)
         }
       }
     }
@@ -164,6 +170,8 @@ async function main() {
   observer.observe(parent.document.body, {
     subtree: true,
     childList: true,
+    attributes: true,
+    attributeFilter: ["class"],
   })
 
   logseq.beforeunload(async () => {
