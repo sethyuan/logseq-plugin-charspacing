@@ -25,8 +25,9 @@ function renderSpacing(el) {
   for (let i = 0, inheritedSpace = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
 
+    const nodeName = textNode.parentElement.nodeName.toLowerCase()
     // Inline code has a special handling.
-    if (textNode.parentElement.nodeName.toLowerCase() === "code") {
+    if (nodeName === "code") {
       const prevText = textNodes[i - 1]?.data
       if (prevText?.length > 0) {
         const prevChar = prevText[prevText.length - 1]
@@ -53,6 +54,13 @@ function renderSpacing(el) {
       }
       // No space should be inherited after processing inline code.
       inheritedSpace = false
+      continue
+    }
+    // Marker is ignored.
+    if (
+      nodeName === "a" &&
+      textNode.parentElement.classList.contains("marker-switch")
+    ) {
       continue
     }
 
