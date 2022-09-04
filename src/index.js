@@ -1,7 +1,9 @@
 import "@logseq/libs"
 
 const hanzi =
-  "[\u2E80-\u2FFF\u31C0-\u31EF\u3300-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F]"
+  "\u2E80-\u2FFF\u31C0-\u31EF\u3300-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F"
+const jap = "\u3040-\u30FF"
+const cj = `[${hanzi}${jap}]`
 const punc = {
   base: "[@&=_\\$%\\^\\*-\\+]",
   open: "[\\(\\[\\{'\"`]",
@@ -11,10 +13,10 @@ const latinOnly =
   "[A-Za-z0-9\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u0391-\u03a9\u03b1-\u03c9]"
 const latin = `${latinOnly}|${punc.base}`
 const patterns = [
-  new RegExp(`(${hanzi})(${latin}|${punc.open})`, "ig"),
-  new RegExp(`(${latin}|${punc.close})(${hanzi})`, "ig"),
+  new RegExp(`(${cj})(${latin}|${punc.open})`, "ig"),
+  new RegExp(`(${latin}|${punc.close})(${cj})`, "ig"),
 ]
-const latinHanziPattern = new RegExp(`${latin}|${hanzi}`, "i")
+const latinHanziPattern = new RegExp(`${latin}|${cj}`, "i")
 const highlightTags = new Set(["mark", "a"])
 
 function renderSpacing(el) {
