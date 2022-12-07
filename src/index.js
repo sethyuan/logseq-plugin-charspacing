@@ -27,7 +27,8 @@ function renderSpacing(el) {
   for (let i = 0, inheritedSpace = false; i < textNodes.length; i++) {
     const textNode = textNodes[i]
 
-    const nodeName = textNode.parentElement.nodeName.toLowerCase()
+    const parent = textNode.parentElement
+    const nodeName = parent.nodeName.toLowerCase()
     // Inline code has a special handling.
     if (nodeName === "code") {
       const prevText = textNodes[i - 1]?.data
@@ -59,9 +60,10 @@ function renderSpacing(el) {
       continue
     }
     // Marker is ignored.
+    // Property `:` is ignored.
     if (
-      nodeName === "a" &&
-      textNode.parentElement.classList.contains("marker-switch")
+      (nodeName === "a" && parent.classList.contains("marker-switch")) ||
+      parent.classList.contains("mr-1")
     ) {
       continue
     }
