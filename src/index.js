@@ -109,6 +109,8 @@ function* getTextNodes(node) {
         }
         break
       case 1:
+        // Exclude code blocks
+        if (subnode.classList.contains("cp__fenced-code-block")) continue
         yield* getTextNodes(subnode)
         break
     }
