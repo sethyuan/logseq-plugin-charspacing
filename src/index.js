@@ -167,7 +167,7 @@ async function main() {
         for (const node of mutation.addedNodes) {
           if (node.querySelectorAll) {
             const nodes = node.querySelectorAll(
-              "div.block-content.inline, .block-parents span, .kef-tocgen-into, .kef-tocgen-page > div > .page",
+              "div.block-content.inline, div.query-table, .block-parents span, .kef-tocgen-into, .kef-tocgen-page > div > .page",
             )
             for (const n of nodes) {
               renderSpacing(n)
