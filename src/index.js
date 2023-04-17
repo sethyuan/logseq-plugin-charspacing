@@ -161,6 +161,15 @@ function findBlock(node, host) {
 }
 
 async function main() {
+  logseq.provideStyle({
+    key: "kef-charspacing",
+    style: `
+    .latex-inline {
+      margin-right: 0.4ch;
+    }
+    `,
+  })
+
   const observer = new MutationObserver((mutationList) => {
     for (const mutation of mutationList) {
       if (mutation.type === "childList") {
