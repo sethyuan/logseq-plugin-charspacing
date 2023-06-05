@@ -188,7 +188,7 @@ async function main() {
         for (const node of mutation.addedNodes) {
           if (node.querySelectorAll) {
             const nodes = node.querySelectorAll(
-              "div.block-content.inline, div.query-table, .block-parents span, .kef-tocgen-into, .kef-tocgen-page > div > .page",
+              "div.block-content.inline, div.query-table, .block-parents span, .kef-tocgen-into, .kef-tocgen-page > div > .page, .kef-kb-card-content",
             )
             for (const n of nodes) {
               renderSpacing(n)
@@ -199,6 +199,10 @@ async function main() {
         if (mutation.target.classList.contains("cloze-revealed")) {
           renderSpacing(mutation.target)
         }
+      } else if (mutation.type === "characterData") {
+        if (mutation.target.parentElement.closest(".kef-kb-card") != null) {
+          renderSpacing(mutation.target.parentElement)
+        }
       }
     }
   })
@@ -207,6 +211,7 @@ async function main() {
     childList: true,
     attributes: true,
     attributeFilter: ["class"],
+    characterData: true,
   })
 
   logseq.beforeunload(async () => {
